@@ -1,6 +1,6 @@
 {
   "name": "natebot",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Manage your AI agents from a clean, simple desktop app. Powered by OpenClaw.",
   "license": "MIT",
   "type": "commonjs",
