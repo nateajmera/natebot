@@ -42,8 +42,9 @@ export function Connections({ botCount }: { botCount: number }) {
           <p className="page__sub">
             A connector gives your bots access to a service — your mail, your code, your files. It's
             a live link you sign into once. To teach a bot how to use something already on this
-            computer, see <strong>Skills</strong>. Anything here is available to{" "}
-            {botCount === 1 ? "your bot" : `all ${botCount} of your bots`}.
+            computer, see <strong>Skills</strong>. Anything here starts available to{" "}
+            {botCount === 1 ? "your bot" : `all ${botCount} of your bots`} — open a bot's card and
+            switch it off there for any bot that shouldn't have it.
           </p>
         </header>
 
