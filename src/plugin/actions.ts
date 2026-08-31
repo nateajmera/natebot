@@ -54,7 +54,6 @@ function verbFor(name: string): string {
 export function classify(toolName: string): Verdict {
   const name = String(toolName ?? "");
   if (!name) return { needsApproval: false };
-  if (name.includes("browser")) return { needsApproval: true, severity: "warning", verb: "open a page" };
 
   // A read is a read even if its name also contains a write-ish word
   // ("search_and_update" is not a thing; "get_payment" is).
