@@ -1,0 +1,242 @@
+/*
+ * One decision per screen, one primary button, and nothing configurable that
+ * already has a sane default. Every screen is allowed to be almost empty.
+ */
+
+.ob {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  overflow-y: auto;
+}
+
+.ob__stage {
+  display: grid;
+  place-items: center;
+  padding: 48px 24px 24px;
+}
+
+.ob__card {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: ob-in 420ms var(--ease) both;
+}
+.ob__card--wide {
+  max-width: 620px;
+}
+
+@keyframes ob-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ob__eyebrow {
+  color: var(--dim);
+  font-size: 12.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ob__h {
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.ob__p {
+  margin: 0;
+  color: var(--dim);
+  line-height: 1.6;
+}
+.ob__p strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.ob__input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 150ms var(--ease);
+}
+.ob__input:focus {
+  border-color: var(--dim);
+}
+.ob__input::placeholder {
+  color: var(--dim);
+}
+
+.ob__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ob__actions .btn--primary {
+  padding: 10px 20px;
+}
+
+.ob__foot {
+  padding: 14px 24px 20px;
+  text-align: center;
+  color: var(--dim);
+  font-size: 12px;
+}
+.ob__foot a {
+  color: var(--dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ------------------------------------------------------------- preflight */
+
+/* The screen that justifies the product: no form fields, no paste-your-token.
+   One live line, then "Connected." */
+.pf {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pf__line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--dim);
+}
+.pf__line[data-done="true"] {
+  color: var(--text);
+}
+.pf__spinner {
+  width: 11px;
+  height: 11px;
+  border-radius: 99px;
+  border: 1.5px solid color-mix(in oklab, var(--working) 30%, transparent);
+  border-top-color: var(--working);
+  animation: pf-spin 720ms linear infinite;
+  flex: none;
+}
+@keyframes pf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.pf__tick {
+  color: var(--text);
+  flex: none;
+  width: 11px;
+  text-align: center;
+}
+.pf__detail {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--dim);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 220px;
+  overflow: auto;
+}
+
+/* -------------------------------------------------------------- providers */
+
+.providers {
+  display: grid;
+  gap: 10px;
+}
+
+.provider {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  transition:
+    border-color 150ms var(--ease),
+    background 150ms var(--ease);
+}
+.provider:hover {
+  border-color: var(--dim);
+}
+.provider[aria-pressed="true"] {
+  border-color: var(--text);
+  background: var(--surface);
+}
+.provider__name {
+  display: flex;
+  font-size: 15px;
+  font-weight: 550;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.provider__req {
+  display: block;
+  color: var(--dim);
+  font-size: 13px;
+  margin-top: 3px;
+}
+.provider__cost {
+  display: block;
+  color: var(--dim);
+  font-size: 12.5px;
+  margin-top: 5px;
+}
+/* Stated up front, because discovering it later feels like a bug. */
+.provider__tokens {
+  display: block;
+  color: var(--dim);
+  font-size: 12px;
+  margin-top: 5px;
+  font-style: italic;
+}
+.provider__found {
+  font-size: 11.5px;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 2px 9px;
+  white-space: nowrap;
+}
+
+.ob__setup {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  color: var(--dim);
+  overflow-x: auto;
+}
+
+/* ------------------------------------------------------------- first task */
+
+.ob__thinking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--dim);
+  font-size: 13px;
+}

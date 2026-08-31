@@ -1,0 +1,1468 @@
+/* ------------------------------------------------------------------ shell */
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--pane-left) minmax(0, 1fr) 0px;
+  height: 100%;
+  transition: grid-template-columns 260ms var(--ease);
+}
+/* Three panes, but only ever two open at once: the thread plus one side. */
+.shell[data-pane="right"] {
+  grid-template-columns: 0px minmax(0, 1fr) var(--pane-right);
+}
+.shell[data-pane="none"] {
+  grid-template-columns: 0px minmax(0, 1fr) 0px;
+}
+
+.pane {
+  min-width: 0;
+  overflow: hidden;
+  height: 100%;
+}
+.pane--left,
+.pane--right {
+  background: var(--panel);
+}
+.pane--left {
+  border-right: 1px solid var(--line);
+}
+.pane--right {
+  border-left: 1px solid var(--line);
+}
+
+@media (max-width: 900px) {
+  /* Both side panes collapse at narrow widths — the mobile layout is free. */
+  .shell,
+  .shell[data-pane="left"] {
+    grid-template-columns: 0px minmax(0, 1fr) 0px;
+  }
+}
+
+/* ---------------------------------------------------------------- sidebar */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: var(--pane-left);
+}
+
+/* In the desktop shell the window's close/minimise buttons sit over the top of
+   the sidebar, so it gives them room. In a plain browser tab there is nothing
+   to avoid and the padding stays as it was. */
+[data-shell="desktop"] .sidebar__top {
+  padding-top: 42px;
+}
+[data-shell="desktop"] .thread__head {
+  -webkit-app-region: drag;
+}
+[data-shell="desktop"] .thread__head button {
+  -webkit-app-region: no-drag;
+}
+
+.sidebar__top {
+  padding: 14px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.search {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 8px 11px;
+  outline: none;
+  transition: border-color 140ms var(--ease);
+}
+.search::placeholder {
+  color: var(--dim);
+}
+.search:focus {
+  border-color: var(--line);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: var(--radius);
+  padding: 8px 13px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition:
+    background 140ms var(--ease),
+    border-color 140ms var(--ease),
+    transform 90ms var(--ease);
+  white-space: nowrap;
+}
+.btn:hover {
+  background: color-mix(in oklab, var(--surface) 80%, var(--text) 6%);
+}
+.btn:active {
+  transform: translateY(0.5px);
+}
+.btn--primary {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+  font-weight: 550;
+}
+/* Nothing in the palette is lighter than --text, so hover dims a touch
+   rather than reaching outside the system for white. */
+.btn--primary:hover {
+  background: color-mix(in oklab, var(--text) 92%, var(--bg));
+}
+.btn--primary:active {
+  background: color-mix(in oklab, var(--text) 86%, var(--bg));
+}
+.btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--dim);
+}
+.btn--ghost:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.rows {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 8px;
+  border-radius: var(--radius);
+  text-align: left;
+  transition: background 120ms var(--ease);
+}
+.row:hover {
+  background: var(--surface);
+}
+.row[aria-current="true"] {
+  background: var(--surface);
+}
+.row__body {
+  min-width: 0;
+}
+.row__name {
+  display: block;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row__sub {
+  display: block;
+  color: var(--dim);
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The only three colours a status dot is ever allowed to be. Anything
+   finished has no dot at all — success is the absence of colour. */
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  flex: none;
+}
+.dot--working {
+  background: var(--working);
+  animation: nb-pulse 1.5s var(--ease) infinite;
+}
+.dot--attention {
+  background: var(--attention);
+}
+.dot--failed {
+  background: var(--failed);
+}
+
+@keyframes nb-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+.sidebar__nav {
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-top: 1px solid var(--line);
+}
+.navitem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 9px;
+  border-radius: var(--radius);
+  color: var(--dim);
+  font-size: 13.5px;
+  text-align: left;
+  transition:
+    background 120ms var(--ease),
+    color 120ms var(--ease);
+}
+.navitem:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+.navitem[aria-current="true"] {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* ---------------------------------------------------- full-pane surfaces */
+
+.page {
+  height: 100%;
+  overflow-y: auto;
+}
+.page__inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 34px 28px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+.page__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.page__title {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.page__sub {
+  margin: 0;
+  color: var(--dim);
+  line-height: 1.55;
+}
+
+.tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  align-self: flex-start;
+}
+.tab {
+  padding: 6px 16px;
+  border-radius: 99px;
+  color: var(--dim);
+  font-size: 13px;
+  transition: background 130ms var(--ease), color 130ms var(--ease);
+}
+.tab:hover {
+  color: var(--text);
+}
+.tab[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.mcp__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mcp {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mcp__row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+.mcp__emoji {
+  font-size: 19px;
+  line-height: 1;
+}
+.mcp__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mcp__name {
+  font-weight: 550;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Where it runs is the fact people most need; never hide it. */
+.mcp__tag {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+.mcp__gives {
+  color: var(--dim);
+  font-size: 13px;
+}
+.mcp__blurb {
+  margin: 0;
+  color: var(--dim);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.mcp__caution {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--attention);
+  border-left: 2px solid var(--attention);
+  padding-left: 10px;
+}
+
+.steps__setup {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.steps__setuprow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.steps__cmd {
+  display: block;
+  margin-top: 5px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--dim);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.custom__row {
+  display: flex;
+  gap: 8px;
+}
+.custom__row .search:first-of-type {
+  max-width: 180px;
+}
+.custom__row .search {
+  flex: 1;
+}
+
+.conn__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.conn {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px;
+  border-radius: var(--radius);
+  transition: background 120ms var(--ease);
+}
+.conn:hover {
+  background: var(--panel);
+}
+.conn__emoji {
+  font-size: 19px;
+  line-height: 1;
+}
+.conn__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.conn__name {
+  font-weight: 550;
+}
+.conn__desc {
+  color: var(--dim);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conn__needs {
+  color: var(--dim);
+  font-size: 12px;
+}
+.conn__needs code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  background: var(--surface);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+/* Finished setup is quiet: no colour, matching the rest of the app. */
+.conn__ready,
+.conn__manual {
+  color: var(--dim);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.hub__search {
+  display: flex;
+  gap: 8px;
+}
+.hub__search .search {
+  flex: 1;
+}
+.hub__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.hub {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 10px;
+  border-radius: var(--radius);
+}
+.hub:hover {
+  background: var(--panel);
+}
+.hub__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.hub__name {
+  font-weight: 550;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hub__desc {
+  color: var(--dim);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hub__meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--dim);
+  font-size: 12.5px;
+}
+.hub__meta a {
+  color: var(--dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.hub__meta a:hover {
+  color: var(--text);
+}
+.hub__avatar {
+  width: 16px;
+  height: 16px;
+  border-radius: 99px;
+}
+/* Both of these spend the reserved attention colour on purpose. */
+.hub__flag {
+  font-size: 11px;
+  color: var(--failed);
+  border: 1px solid color-mix(in oklab, var(--failed) 45%, transparent);
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+.hub__dupe {
+  font-size: 11px;
+  color: var(--attention);
+  border: 1px solid color-mix(in oklab, var(--attention) 45%, transparent);
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+
+.hub__official {
+  font-size: 11px;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+/* Grey, not amber: "nobody checked" is a caveat, not an alarm. Spending the
+   attention colour here would blunt it everywhere it genuinely matters. */
+.hub__unscanned {
+  font-size: 11px;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+
+.settings__team {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.settings__bot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 6px;
+  border-radius: 99px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 13px;
+}
+
+.sidebar__foot {
+  border-top: 1px solid var(--line);
+  padding: 8px;
+  display: flex;
+  gap: 4px;
+}
+.sidebar__foot .btn {
+  flex: 1;
+  font-size: 13px;
+  color: var(--dim);
+  background: transparent;
+  border-color: transparent;
+}
+.sidebar__foot .btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* ----------------------------------------------------------------- thread */
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+}
+
+.thread__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.thread__title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  margin: -4px -8px;
+  transition: background 120ms var(--ease);
+}
+.thread__title:hover {
+  background: var(--surface);
+}
+.thread__name {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.thread__status {
+  color: var(--dim);
+  font-size: 12.5px;
+}
+.thread__spacer {
+  flex: 1;
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 0 8px;
+}
+
+.stream {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+.msg--user {
+  align-items: flex-end;
+}
+.msg--user .msg__body {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border-bottom-right-radius: 5px;
+  padding: 9px 14px;
+  max-width: 78%;
+}
+.msg--assistant .msg__body {
+  max-width: 100%;
+}
+.msg__body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.msg__body code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--surface);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+.msg__cursor {
+  display: inline-block;
+  width: 7px;
+  height: 15px;
+  vertical-align: -2px;
+  margin-left: 2px;
+  background: var(--working);
+  animation: nb-blink 1.05s steps(2, start) infinite;
+}
+@keyframes nb-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------- step row */
+
+/* An agent turn isn't one message, it's a dozen tool calls. Collapsed by
+   default; while it runs, this row is where the cyan lives. */
+.steps {
+  align-self: flex-start;
+  width: 100%;
+}
+.steps__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 11px 5px 9px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 12.5px;
+  transition:
+    color 140ms var(--ease),
+    border-color 140ms var(--ease);
+}
+.steps__toggle:hover {
+  color: var(--text);
+  border-color: var(--dim);
+}
+.steps__toggle[data-running="true"] {
+  color: var(--working);
+  border-color: color-mix(in oklab, var(--working) 45%, transparent);
+}
+.steps__toggle[data-failed="true"] {
+  color: var(--failed);
+  border-color: color-mix(in oklab, var(--failed) 45%, transparent);
+}
+.steps__chevron {
+  transition: transform 180ms var(--ease);
+}
+.steps__toggle[aria-expanded="true"] .steps__chevron {
+  transform: rotate(90deg);
+}
+
+.steps__shots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 7px;
+  margin-left: 3px;
+  border-left: 1px solid var(--line);
+  color: inherit;
+}
+
+/* The filmstrip: what the browser saw, in order. Reading it costs nothing —
+   the pixels come off disk, not back through a model. */
+.filmstrip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 2px 4px;
+  scrollbar-width: thin;
+}
+.filmstrip__frame {
+  position: relative;
+  flex: none;
+  width: 132px;
+  height: 78px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  transition:
+    border-color 140ms var(--ease),
+    transform 140ms var(--ease);
+}
+.filmstrip__frame:hover {
+  border-color: var(--dim);
+  transform: translateY(-1px);
+}
+.filmstrip__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.filmstrip__num {
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--text);
+  background: rgba(24, 23, 21, 0.78);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(12, 11, 10, 0.88);
+  display: grid;
+  place-items: center;
+  padding: 40px;
+  cursor: zoom-out;
+  animation: nb-fade 160ms var(--ease);
+}
+.lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+@keyframes nb-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.steps__list {
+  margin-top: 8px;
+  border-left: 1px solid var(--line);
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.step__head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+}
+.step__name {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+.step__name[data-error="true"] {
+  color: var(--failed);
+}
+.step__arg {
+  color: var(--dim);
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.step__out {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--dim);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  max-height: 190px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ----------------------------------------------------------------- cards */
+
+/* Approvals live in the thread where they happened and stay in history after
+   you answer. The amber here is the same amber on the sidebar dot: one
+   colour, one meaning, two places. */
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card--attention {
+  border-left: 2px solid var(--attention);
+}
+.card--resolved {
+  opacity: 0.6;
+}
+.card__title {
+  font-weight: 550;
+}
+.card__meta {
+  color: var(--dim);
+  font-size: 12.5px;
+}
+.card__pre {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  max-height: 200px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* Risk on an approval is the one thing that must not be quiet. */
+.card__warn {
+  font-size: 12.5px;
+  color: var(--attention);
+  border-left: 2px solid var(--attention);
+  padding-left: 10px;
+  white-space: pre-wrap;
+}
+
+.card__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.card__other {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.card__other input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 7px 11px;
+  outline: none;
+}
+
+.plan__bot {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.plan__bot:first-of-type {
+  border-top: none;
+}
+.plan__botbody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.plan__botname {
+  font-weight: 550;
+}
+.plan__tools {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+.chip {
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--dim);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+.plan__first {
+  color: var(--dim);
+  font-size: 13px;
+  border-left: 2px solid var(--line);
+  padding-left: 10px;
+  white-space: pre-wrap;
+}
+
+/* -------------------------------------------------------------- composer */
+
+.composer {
+  padding: 10px 20px 18px;
+}
+.composer__inner {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 8px 8px 7px 10px;
+  transition: border-color 160ms var(--ease);
+}
+.composer__inner:focus-within {
+  border-color: var(--dim);
+}
+.composer textarea {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 5px 4px 3px;
+  max-height: 208px;
+  line-height: 1.5;
+}
+.composer textarea::placeholder {
+  color: var(--dim);
+}
+.composer__bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-top: 3px;
+}
+.composer__bar .spacer {
+  flex: 1;
+}
+
+/* The model and thinking chips are one control group and read as a pair, so
+   they sit together rather than drifting apart across the bar. */
+.composer__chips {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chip-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 99px;
+  border: 1px solid transparent;
+  transition:
+    background 130ms var(--ease),
+    color 130ms var(--ease);
+}
+.chip-select:hover {
+  background: var(--panel);
+}
+.chip-select__label {
+  padding: 4px 9px;
+  font-size: 12.5px;
+  color: var(--dim);
+  white-space: nowrap;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chip-select:hover .chip-select__label {
+  color: var(--text);
+}
+/* The real control, invisible but exactly on top, so the native menu and
+   keyboard behaviour are untouched. */
+.chip-select select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  appearance: none;
+  border: none;
+}
+.chip-select select option {
+  background: var(--panel);
+  color: var(--text);
+}
+.chip-select[data-override="true"] {
+  border-color: var(--line);
+}
+.chip-select[data-override="true"] .chip-select__label {
+  color: var(--text);
+}
+
+.composer__files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 4px 6px;
+}
+.filechip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 240px;
+  padding: 3px 6px 3px 10px;
+  border-radius: 99px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.filechip button {
+  color: var(--dim);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 99px;
+}
+.filechip button:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.composer__error {
+  color: var(--failed);
+  font-size: 12.5px;
+  padding: 4px 4px 0;
+}
+.iconbtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dim);
+  transition:
+    background 130ms var(--ease),
+    color 130ms var(--ease);
+}
+.iconbtn:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+.iconbtn--send {
+  background: var(--text);
+  color: var(--bg);
+}
+.iconbtn--send:hover {
+  background: color-mix(in oklab, var(--text) 92%, var(--bg));
+  color: var(--bg);
+}
+.iconbtn--stop {
+  background: var(--surface);
+  color: var(--working);
+  border: 1px solid color-mix(in oklab, var(--working) 45%, transparent);
+}
+
+.selectchip {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 99px;
+  color: var(--dim);
+  font-size: 12.5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  max-width: 190px;
+  transition:
+    background 130ms var(--ease),
+    color 130ms var(--ease);
+}
+.selectchip:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+.selectchip option {
+  background: var(--panel);
+  color: var(--text);
+}
+/* A per-message override is a one-off; it snaps back next message, and it
+   says so while it's active rather than silently changing your bill. */
+.selectchip[data-override="true"] {
+  color: var(--text);
+  border-color: var(--line);
+}
+
+/* ---------------------------------------------------------------- details */
+
+.details {
+  width: var(--pane-right);
+  height: 100%;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.details__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 0 4px;
+  text-align: center;
+}
+.details__name {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.section__label {
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field input,
+.field select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 11px;
+  outline: none;
+  appearance: none;
+}
+.field select option {
+  background: var(--panel);
+}
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.kv span:last-child {
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.note {
+  color: var(--dim);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 99px;
+  border: 2px solid transparent;
+  transition: transform 120ms var(--ease);
+}
+.swatch:hover {
+  transform: scale(1.12);
+}
+.swatch[aria-pressed="true"] {
+  border-color: var(--text);
+}
+
+.faces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.facebtn {
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+.facebtn:hover {
+  background: var(--surface);
+}
+.facebtn[aria-pressed="true"] {
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+/* ------------------------------------------------------------ empty/error */
+
+.center {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 40px;
+}
+.empty {
+  text-align: center;
+  color: var(--dim);
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  background: color-mix(in oklab, var(--failed) 14%, var(--bg));
+  border-bottom: 1px solid color-mix(in oklab, var(--failed) 35%, transparent);
+  font-size: 13px;
+}
+
+/* ------------------------------------------------------------- avatar life */
+
+/* "Alive" lands in motion, not detail: a slow blink at rest, eyes narrowing
+   while the agent is actually working. */
+.nb-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nb-blinkeyes 6.5s var(--ease) infinite;
+}
+.nb-eyes--working {
+  animation: nb-workeyes 1.9s var(--ease) infinite;
+}
+@keyframes nb-blinkeyes {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.12);
+  }
+}
+@keyframes nb-workeyes {
+  0%,
+  100% {
+    transform: scaleY(0.55);
+  }
+  50% {
+    transform: scaleY(0.32);
+  }
+}
+
+.avatarstack {
+  display: flex;
+  align-items: center;
+}
+.avatarstack > * + * {
+  margin-left: -11px;
+}
+
+/* --------------------------------------------------------------- markdown */
+
+/* Model output is Markdown; rendering only the subset that actually shows up
+   keeps replies readable without a parser dependency. */
+.msg__body--md {
+  white-space: normal;
+}
+.msg__body--md > :first-child {
+  margin-top: 0;
+}
+.msg__body--md > :last-child {
+  margin-bottom: 0;
+}
+.md__p {
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+}
+.md__h {
+  margin: 16px 0 8px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.md__list {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.md__pre {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 0 0 10px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+.msg__body--md a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ scrim */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklab, var(--bg) 74%, transparent);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 20;
+}
+
+/* --------------------------------------------------------------------- scope */
+/* What one bot can reach. No colour on these: an on switch is simply lighter
+   than an off one, because colour in this app means which agent or needs you,
+   and a drawer of green would be neither. */
+
+.scope {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.scope__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  transition: background 120ms var(--ease);
+}
+.scope__row:hover:not(:disabled) {
+  background: var(--surface);
+}
+.scope__row:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.scope__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.scope__label {
+  font-size: 13px;
+}
+.scope__blurb {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--dim);
+}
+.scope__switch {
+  flex: none;
+  width: 34px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 99px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: background 140ms var(--ease);
+}
+.scope__row[aria-checked="true"] .scope__switch {
+  background: var(--text);
+  border-color: var(--text);
+}
+.scope__knob {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 99px;
+  background: var(--dim);
+  transition: transform 140ms var(--ease), background 140ms var(--ease);
+}
+.scope__row[aria-checked="true"] .scope__knob {
+  background: var(--bg);
+  transform: translateX(14px);
+}

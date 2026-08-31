@@ -1,11 +1,30 @@
 {
   "name": "natebot",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Manage your AI agents from a clean, simple desktop app. Powered by OpenClaw.",
   "license": "MIT",
-  "type": "commonjs",
+  "type": "module",
   "bin": {
     "natebot": "bin/natebot.js"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "bin",
+    "dist",
+    "plugin"
+  ],
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "build": "npm run build:server && npm run build:web",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:web": "vite build",
+    "dev": "npm run build:server && NATEBOT_DEV=1 node bin/natebot.js",
+    "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p src/web/tsconfig.json --noEmit",
+    "test": "npm run build:server && node --test \"test/*.test.js\"",
+    "start": "node bin/natebot.js"
   },
   "keywords": [
     "ai",
@@ -13,5 +32,25 @@
     "openclaw",
     "assistant"
   ],
-  "author": "Nathan Ajmera"
+  "author": "Nathan Ajmera",
+  "dependencies": {
+    "electron": "^38.8.6",
+    "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/ws": "^8.18.1",
+    "@vitejs/plugin-react": "^5.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.0"
+  },
+  "openclaw": {
+    "extensions": [
+      "./dist/plugin/index.js"
+    ]
+  }
 }
